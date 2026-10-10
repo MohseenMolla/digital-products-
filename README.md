@@ -20,11 +20,7 @@ npm install && npm run dev                       # http://localhost:3000
 Generate secrets: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` for `JWT_SECRET` and `ENCRYPTION_KEY`.
 The browser calls `/api/*` on the frontend origin; Next proxies it to `BACKEND_URL` (keeps the auth cookie first-party).
 
-## First steps after seeding
-1. Log in at `/login`: **admin@example.com / ChangeMe123!** (development credentials; you are forced to change the password).
-2. Set your receiving numbers: either `BKASH_NUMBER` / `NAGAD_NUMBER` / `ROCKET_NUMBER` in `backend/.env` (restart the backend), or **Admin > Settings > Payment methods** (this overrides the .env values). Nothing can be bought until at least one is set.
-3. Upload a PDF on a product (**Admin > Products > edit > Delivery**). Files are private on Cloudinary.
-4. Publish the product, click Buy Now as a guest, and test the flow.
+
 
 ## How buying works (no login)
 Buy Now > checkout (name, email, phone) > payment page (choose bKash/Nagad/Rocket, send money, submit TrxID + your number) >
