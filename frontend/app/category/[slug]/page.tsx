@@ -29,7 +29,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       {cat.description && <p className="mt-2 text-slate-600">{cat.description}</p>}
       <div className="mt-5"><Suspense><Filter categories={[]} hideCategory /></Suspense></div>
       <div className="mt-8">
-        <ProductGrid products={data?.items ?? []} empty="No products in this category yet" />
+        <ProductGrid products={data?.items ?? []} />
         {data && <Pagination page={data.page} pages={data.pages} hrefFor={(p) => `/category/${slug}?page=${p}`} />}
       </div>
     </div>
