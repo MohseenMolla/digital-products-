@@ -5,7 +5,7 @@ import mongoSanitize from 'express-mongo-sanitize';
 import helmet from 'helmet';
 import { env } from './config/env';
 import { errorHandler, notFound } from './middleware/error';
-import { globalLimiter, originGuard } from './middleware/security';
+import { globalLimiter } from './middleware/security'; // originGuard ইমপোর্ট সরিয়ে বা বাদ দিতে পারেন
 import { api } from './routes';
 import { AppError } from './utils/AppError';
 
@@ -15,7 +15,7 @@ app.disable('x-powered-by');
 
 app.use(helmet());
 
-// ফিক্সড CORS: সব ডোমেইন অ্যালাউ করার জন্য origin: true দেওয়া হয়েছে
+// ১. CORS: সব ডোমেইন অ্যালাউ করা হলো
 app.use(cors({
   origin: true,
   credentials: true,
@@ -26,7 +26,8 @@ app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(globalLimiter);
-app.use(originGuard);
+
+// ❌ app.use(originGuard); <-- এই লাইনটি রিমুভ/কমেন্ট করা হয়েছে কারণ এটি ব্লক করছিল
 
 app.get('/health', (_req, res) => { res.json({ ok: true }); });
 app.use('/api', api);
