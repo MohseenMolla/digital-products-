@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Check } from 'lucide-react';
 import { API_BASE, api, errMsg } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useFetch } from '@/hooks/useFetch';
@@ -11,7 +11,6 @@ import { ErrorState, PageLoader } from '@/components/ui/States';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/format';
 import { CopyRow } from './CopyRow';
-import { FileCard } from './FileCard';
 
 interface Resp {
   order: { orderNumber: string; productId: string; productTitle: string; amount: number; paymentStatus: string };
@@ -49,59 +48,148 @@ export function OrderAccess({ orderNumber, token }: { orderNumber: string; token
   const { data, loading, error, reload, setData } = useFetch<Resp>(url);
   const [claimed, setClaimed] = useState(false);
   const waiting = Boolean(data && !data.access && data.order.paymentStatus === 'PROCESSING');
+  
   // While an admin is verifying, quietly re-check so the download page appears by itself.
   useEffect(() => {
     if (!waiting) return;
     const t = setInterval(() => { api.get(url).then((r) => setData(r.data.data as Resp)).catch(() => undefined); }, 15000);
     return () => clearInterval(t);
   }, [waiting, url, setData]);
+  
   if (loading) return <PageLoader text="Loading your product..." />;
   if (error || !data) return <ErrorState message={error || 'This access link is not valid.'} onRetry={reload} />;
+  
   if (!data.access) {
     const st = data.order.paymentStatus;
     const payHref = `/payment/${orderNumber}?token=${encodeURIComponent(token)}`;
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+      <div className="mx-auto max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
         {st === 'PROCESSING' ? (<><h2 className="text-xl font-bold">Payment submitted</h2><p className="mt-2 text-slate-600">We are verifying your transaction. This page updates automatically, and we will email your link as soon as it is approved.</p></>)
           : st === 'FAILED' ? (<><h2 className="text-xl font-bold">Payment rejected</h2><p className="mt-2 text-slate-600">{data.rejectReason || 'We could not verify your transaction.'} Please submit the correct transaction ID.</p><Link href={payHref} className={buttonClass('primary', 'lg', 'mt-5')}>Submit again</Link></>)
           : (<><h2 className="text-xl font-bold">Payment not completed</h2><p className="mt-2 text-slate-600">Send the payment and submit your transaction ID to unlock {data.order.productTitle}.</p><Link href={payHref} className={buttonClass('primary', 'lg', 'mt-5')}>Go to payment</Link></>)}
       </div>
     );
   }
+  
   const a = data.access;
   const fileUrl = `${API_BASE}/orders/access/${orderNumber}/file?token=${encodeURIComponent(token)}`;
+  
   return (
-    <div className="space-y-5 text-left">
-      {data.order.paymentStatus !== 'PAID' && <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">Your payment is being verified. You can use your product now, but access will be removed if the transaction cannot be confirmed.</p>}
-      <div><h2 className="text-xl font-bold">{a.title}</h2><p className="text-sm text-slate-500">{a.expiresAt ? `Access until ${formatDate(a.expiresAt)}` : 'Lifetime access'}</p></div>
-
-      {a.hasFile && <FileCard fileUrl={fileUrl} fileName={a.fileName} remaining={a.downloadsRemaining} />}
-
-      {a.credentials && (
-        <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="font-semibold">Premium App Access</p>
-          <CopyRow label="Username / email" value={a.credentials.loginEmail} />
-          <CopyRow label="Password" value={a.credentials.password} secret />
-          {a.credentials.loginUrl && <a href={a.credentials.loginUrl} target="_blank" rel="noopener noreferrer" className={buttonClass('secondary', 'md')}><ExternalLink className="h-4 w-4" />Open login page</a>}
-          {a.credentials.expiresAt && <p className="text-sm text-slate-600">Credentials expire: {formatDate(a.credentials.expiresAt)}</p>}
-          {a.credentials.notes && <p className="whitespace-pre-line rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{a.credentials.notes}</p>}
-        </div>
-      )}
-      {a.appInstructions && <div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="font-semibold">Instructions</p><p className="mt-2 whitespace-pre-line text-sm text-slate-700">{a.appInstructions}</p></div>}
-      {a.externalUrl && <a href={a.externalUrl} target="_blank" rel="noopener noreferrer" className={buttonClass('primary', 'lg')}><ExternalLink className="h-4 w-4" />Open product</a>}
-      {a.content && <div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="font-semibold">Content</p><div className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">{a.content}</div></div>}
-
-      {a.isCourse && (
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="font-semibold">Course lessons</p>
-          {user ? <Link href={`/dashboard/courses/${data.order.productId}`} className={buttonClass('primary', 'lg', 'mt-3')}>Start learning</Link>
-            : <p className="mt-1 text-sm text-slate-600">Lessons play inside your account. {data.canSetPassword ? 'Create a password below to start learning.' : 'Log in with your email to start learning.'}</p>}
-        </div>
+    <div className="flex flex-col items-center py-4">
+      {data.order.paymentStatus !== 'PAID' && (
+        <p className="mb-6 w-full max-w-md rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          Your payment is being verified. You can use your product now, but access will be removed if the transaction cannot be confirmed.
+        </p>
       )}
 
-      {data.canSetPassword && !claimed && !user && <SetPassword orderNumber={orderNumber} token={token} onDone={() => setClaimed(true)} />}
-      {user && <Link href="/dashboard/purchases" className={buttonClass('secondary', 'md')}>Go to my purchases</Link>}
-      <p className="text-xs text-slate-500">Keep your access link private. We also emailed it to you. Lost it later? <Link className="underline" href="/recover">Get your links again</Link>.</p>
+      {/* --- EXACT DESIGN LAYOUT START --- */}
+      <div className="w-full max-w-[340px]">
+        {/* Top Success Card */}
+        <div className="flex flex-col items-center justify-center rounded-[24px] border-[2px] border-[#c5e170] bg-white py-6 shadow-sm">
+          <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[#12b659]">
+            <Check className="h-10 w-10 text-white" strokeWidth={3.5} />
+          </div>
+          <h2 className="mt-4 text-[17px] font-bold text-slate-800">
+            Your payment was successful
+          </h2>
+          <p className="mt-1 text-[11px] font-medium text-slate-500">
+            Thank you for your payment.
+          </p>
+        </div>
+
+        {/* Bengali Confirmation Text */}
+        <div className="mt-6 text-center text-[16px] font-medium leading-relaxed text-slate-800">
+          আপনার অর্ডারটি কনফার্ম করা<br />
+          হয়েছে এবং আপনাকে সম্পূর্ণ<br />
+          অ্যাক্সেস দেওয়া হয়েছে।
+        </div>
+
+        {/* Gray Action/Download Card */}
+        <div className="mt-8 rounded-[32px] bg-[#f5f6f8] p-8 shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+          {a.hasFile ? (
+            <div>
+              <a
+                href={fileUrl}
+                download
+                className="flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#02a95c] to-[#8bc53f] py-4 text-[22px] font-bold tracking-wide text-white shadow-lg shadow-green-500/20 transition-transform hover:scale-[1.02] active:scale-95"
+              >
+                Download
+                <svg className="h-[26px] w-[26px]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="12" fill="white" />
+                  <path d="M12 7V16M12 16L8.5 12.5M12 16L15.5 12.5" stroke="#71b83d" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </a>
+              {a.downloadsRemaining !== null && (
+                <p className="mt-3 text-center text-[11px] font-medium text-slate-500">
+                  Downloads remaining: {a.downloadsRemaining}
+                </p>
+              )}
+            </div>
+          ) : a.externalUrl ? (
+            <a
+              href={a.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#02a95c] to-[#8bc53f] py-4 text-[22px] font-bold tracking-wide text-white shadow-lg shadow-green-500/20 transition-transform hover:scale-[1.02] active:scale-95"
+            >
+              Access Now
+              <ExternalLink className="h-6 w-6" />
+            </a>
+          ) : null}
+        </div>
+      </div>
+      {/* --- EXACT DESIGN LAYOUT END --- */}
+
+
+      {/* --- ADDITIONAL ACCESS DETAILS (Kept intact below the main layout) --- */}
+      <div className="mt-10 w-full max-w-md space-y-5 text-left">
+        {a.expiresAt && (
+          <p className="text-center text-sm font-medium text-slate-500">
+            Access expires: {formatDate(a.expiresAt)}
+          </p>
+        )}
+
+        {a.credentials && (
+          <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="font-semibold text-slate-900">Premium App Access</p>
+            <CopyRow label="Username / email" value={a.credentials.loginEmail} />
+            <CopyRow label="Password" value={a.credentials.password} secret />
+            {a.credentials.loginUrl && <a href={a.credentials.loginUrl} target="_blank" rel="noopener noreferrer" className={buttonClass('secondary', 'md', 'w-full')}><ExternalLink className="h-4 w-4" />Open login page</a>}
+            {a.credentials.expiresAt && <p className="text-sm text-slate-600">Credentials expire: {formatDate(a.credentials.expiresAt)}</p>}
+            {a.credentials.notes && <p className="whitespace-pre-line rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{a.credentials.notes}</p>}
+          </div>
+        )}
+
+        {a.appInstructions && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="font-semibold text-slate-900">Instructions</p>
+            <p className="mt-2 whitespace-pre-line text-sm text-slate-700">{a.appInstructions}</p>
+          </div>
+        )}
+
+        {a.content && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="font-semibold text-slate-900">Content</p>
+            <div className="mt-2 whitespace-pre-line text-sm leading-6 text-slate-700">{a.content}</div>
+          </div>
+        )}
+
+        {a.isCourse && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <p className="font-semibold text-slate-900">Course lessons</p>
+            {user ? <Link href={`/dashboard/courses/${data.order.productId}`} className={buttonClass('primary', 'lg', 'mt-3 w-full')}>Start learning</Link>
+              : <p className="mt-1 text-sm text-slate-600">Lessons play inside your account. {data.canSetPassword ? 'Create a password below to start learning.' : 'Log in with your email to start learning.'}</p>}
+          </div>
+        )}
+
+        {data.canSetPassword && !claimed && !user && <SetPassword orderNumber={orderNumber} token={token} onDone={() => setClaimed(true)} />}
+        
+        {user && <Link href="/dashboard/purchases" className={buttonClass('secondary', 'md', 'w-full')}>Go to my purchases</Link>}
+        
+        <p className="text-center text-xs text-slate-500">
+          Keep your access link private. We also emailed it to you. Lost it later? <Link className="underline hover:text-brand-600" href="/recover">Get your links again</Link>.
+        </p>
+      </div>
     </div>
   );
 }
