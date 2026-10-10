@@ -14,14 +14,13 @@ app.set('trust proxy', env.TRUST_PROXY_HOPS);
 app.disable('x-powered-by');
 
 app.use(helmet());
+
+// ফিক্সড CORS: সব ডোমেইন অ্যালাউ করার জন্য origin: true দেওয়া হয়েছে
 app.use(cors({
-  origin: (origin, cb) => {
-    // No Origin header = server-to-server (webhook) or same-origin proxy request.
-    if (!origin || env.frontendOrigins.includes(origin.replace(/\/$/, ''))) return cb(null, true);
-    cb(new AppError(403, 'Origin not allowed by CORS', 'CORS_BLOCKED'));
-  },
+  origin: true,
   credentials: true,
 }));
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: false, limit: '1mb' }));
 app.use(cookieParser());
