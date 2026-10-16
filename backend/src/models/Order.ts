@@ -23,6 +23,7 @@ export interface IOrder {
   transactionId?: string;
   gatewayTransactionId?: string;
   paymentFee?: number;
+  attribution?: Record<string, unknown>;
   metadata: Record<string, unknown>;
   timeline: { event: string; note: string; at: Date }[];
   paidAt?: Date;
@@ -51,6 +52,7 @@ const schema = new Schema<IOrder>(
     transactionId: { type: String, unique: true, sparse: true },
     gatewayTransactionId: String,
     paymentFee: Number,
+    attribution: { type: Schema.Types.Mixed, default: {} },
     metadata: { type: Schema.Types.Mixed, default: {} },
     timeline: [{ _id: false, event: String, note: String, at: { type: Date, default: Date.now } }],
     paidAt: Date,

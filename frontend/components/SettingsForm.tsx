@@ -40,6 +40,27 @@ export function SettingsForm({ section }: { section: 'general' | 'homepage' }) {
             <Textarea label="Footer text" rows={2} value={s.footerText} onChange={(e) => up('footerText', e.target.value)} />
           </div>
           <div className={box}>
+            <p className="font-semibold">Tracking & Analytics</p>
+            <p className="text-sm text-slate-500">Set up tracking IDs to enable conversion tracking. Leave empty to disable. Get these IDs from the respective platform dashboards.</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input label="GTM Container ID (GTM-XXXXXXX)" placeholder="GTM-" value={s.gtmId || ''} onChange={(e) => up('gtmId', e.target.value)} />
+              <Input label="Microsoft Clarity ID" placeholder="e.g. abc123xyz" value={s.clarityId || ''} onChange={(e) => up('clarityId', e.target.value)} />
+              <Input label="Google Ads Conversion ID (AW-XXXXX)" placeholder="AW-XXXXXXXXX" value={s.googleAdsId || ''} onChange={(e) => up('googleAdsId', e.target.value)} />
+              <Input label="Google Ads Conversion Label" placeholder="e.g. AbC-D_efGhIjKlMnOpQ" value={s.googleAdsConversionLabel || ''} onChange={(e) => up('googleAdsConversionLabel', e.target.value)} />
+              <Input label="Meta Pixel ID" placeholder="e.g. 123456789012345" value={s.metaPixelId || ''} onChange={(e) => up('metaPixelId', e.target.value)} />
+              <Input label="Meta CAPI Access Token" placeholder="EAAB..." value={s.metaAccessToken || ''} onChange={(e) => up('metaAccessToken', e.target.value)} />
+              <Input label="TikTok Pixel ID" placeholder="e.g. CXXXXXXXXXXXXXXX" value={s.tiktokPixelId || ''} onChange={(e) => up('tiktokPixelId', e.target.value)} />
+              <Input label="TikTok Events API Access Token" placeholder="e.g. act_..." value={s.tiktokAccessToken || ''} onChange={(e) => up('tiktokAccessToken', e.target.value)} />
+              <div className="sm:col-span-2">
+                <Input label="GA4 Measurement Protocol Secret" placeholder="e.g. secret_xxxxxxxxxxxx" value={s.gaMeasurementSecret || ''} onChange={(e) => up('gaMeasurementSecret', e.target.value)} />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              <span className="font-semibold text-slate-700">Server-side Tracking:</span> Meta CAPI, TikTok Events API, and GA4 Measurement Protocol use these tokens to record conversions directly from the server, bypassing ad blockers and browser privacy restrictions for reliable tracking.
+            </p>
+            <p className="text-xs text-slate-400">Note: If GTM ID is set, GA4 will be managed through GTM instead of directly. Meta Pixel, TikTok Pixel, and Clarity load independently.</p>
+          </div>
+          <div className={box}>
             <p className="font-semibold">Payment methods (Send Money)</p>
             <p className="text-sm text-slate-500">Customers send money to these numbers, then submit their transaction ID. Methods without a number are hidden.</p>
             {s.payment.methods.map((m, i) => (

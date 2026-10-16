@@ -13,6 +13,7 @@ import { useFetch } from '@/hooks/useFetch';
 import { Button, buttonClass } from '@/components/ui/Button';
 import { ErrorState, PageLoader } from '@/components/ui/States';
 import { useToast } from '@/components/ui/Toast';
+import { trackAddPaymentInfo, trackPaymentFailed } from '@/lib/tracking';
 
 type Key = 'BKASH' | 'NAGAD' | 'ROCKET';
 
@@ -95,6 +96,16 @@ function PayForm({ info, token }: { info: Info; token: string }) {
   const theme = METHOD_CONFIG[method] || METHOD_CONFIG.BKASH;
   const o = info.order;
 
+  useEffect(() => {
+    if (info) {
+      trackAddPaymentInfo({
+        orderNumber: o.orderNumber,
+        value: o.amount,
+        paymentMethod: method,
+      });
+    }
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -115,7 +126,13 @@ function PayForm({ info, token }: { info: Info; token: string }) {
       });
       router.replace(`/order/${o.orderNumber}?token=${token}`);
     } catch (e) {
-      setError(errMsg(e));
+      const err = errMsg(e);
+      trackPaymentFailed({
+        orderNumber: o.orderNumber,
+        value: o.amount,
+        reason: err,
+      });
+      setError(err);
     }
   }
 

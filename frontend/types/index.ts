@@ -16,6 +16,8 @@ export interface Paged<T> { items: T[]; page: number; limit: number; total: numb
 export interface Settings {
   siteName: string; tagline: string; logoUrl: string; faviconUrl: string; contactEmail: string; phone: string;
   whatsapp: string; facebook: string; telegram: string; footerText: string; currency: string; gaId: string;
+  gtmId: string; metaPixelId: string; tiktokPixelId: string; clarityId: string;
+  metaAccessToken: string; tiktokAccessToken: string; gaMeasurementSecret: string; googleAdsId: string; googleAdsConversionLabel: string;
   payment: { instantAccess: boolean; note: string; methods: { key: 'BKASH' | 'NAGAD' | 'ROCKET'; label: string; number: string; accountType: string; enabled: boolean }[] };
   homepage: {
     heroTitle: string; heroSubtitle: string; whyChoose: { title: string; text: string }[];

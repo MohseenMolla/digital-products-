@@ -12,6 +12,7 @@ import { logger } from '../utils/logger';
 import { grantAccess } from './access.service';
 import { sendAccessEmail, sendPaymentEmail } from './email.service';
 import { notifyAdmins, notifyUser } from './notification.service';
+import { sendServerPurchaseTracking } from './tracking.service';
 
 export type PayMethod = 'BKASH' | 'NAGAD' | 'ROCKET';
 
@@ -42,6 +43,7 @@ async function accessLink(order: HydratedDocument<IOrder>) {
 
 async function afterPaid(order: HydratedDocument<IOrder>) {
   try {
+    void sendServerPurchaseTracking(order);
     if (order.couponCode) await Coupon.updateOne({ code: order.couponCode }, { $inc: { usedCount: 1 } });
     const product = await Product.findById(order.product).select('title');
     const title = product?.title ?? order.productTitleSnapshot;
@@ -142,5 +144,6 @@ export async function rejectOrder(order: HydratedDocument<IOrder>, reason: strin
 
 /** Zero-amount orders (100% coupon) need no payment. */
 export async function finalizeFreeOrder(order: HydratedDocument<IOrder>) {
+  void sendServerPurchaseTracking(order);
   return settle(order, { transactionId: `FREE-${order.orderNumber}`, method: 'FREE' }, 'Free order');
 }

@@ -12,7 +12,7 @@ import { newAccessToken, sealToken } from './orderAccess.service';
 import { finalizeFreeOrder } from './payment.service';
 import { applyCoupon, round2 } from './pricing.service';
 
-interface CheckoutInput { productId: string; fullName: string; email: string; phone: string; couponCode?: string; }
+interface CheckoutInput { productId: string; fullName: string; email: string; phone: string; couponCode?: string; attribution?: Record<string, unknown>; }
 
 /**
  * Logged-in users buy as themselves. Guests are matched by email to an existing account, or a
@@ -62,7 +62,7 @@ export async function createCheckout(authUser: HydratedDocument<IUser> | null, i
         orderNumber: generateOrderNumber(), user: user._id,
         customerName: input.fullName, customerEmail: input.email, customerPhone: input.phone,
         product: product._id, productTitleSnapshot: product.title,
-        subtotal, discount, couponCode, amount, currency: 'BDT', accessTokenEnc: sealToken(token),
+        subtotal, discount, couponCode, amount, currency: 'BDT', attribution: input.attribution || {}, accessTokenEnc: sealToken(token),
         timeline: [{ event: 'CREATED', note: authUser ? 'Order created' : 'Guest order created', at: new Date() }],
       });
     } catch (e) { if ((e as { code?: number }).code !== 11000 || i === 3) throw e; }

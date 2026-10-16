@@ -6,6 +6,15 @@ import { ok } from '../utils/helpers';
 
 /** Works for guests and logged-in users (optionalAuth). */
 export const checkout = asyncHandler(async (req: Request, res: Response) => {
+  const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip;
+  req.body.attribution = {
+    ...(req.body.attribution || {}),
+    clientIp,
+    userAgent: req.headers['user-agent'],
+    fbp: req.cookies?._fbp,
+    fbc: req.cookies?._fbc,
+    ttp: req.cookies?._ttp,
+  };
   const r = await createCheckout(req.user ?? null, req.body);
   ok(res, r, 201);
 });

@@ -14,6 +14,15 @@ export interface ISiteSetting {
   footerText: string;
   currency: string;
   gaId: string;
+  gtmId: string;
+  metaPixelId: string;
+  tiktokPixelId: string;
+  clarityId: string;
+  metaAccessToken: string;
+  tiktokAccessToken: string;
+  gaMeasurementSecret: string;
+  googleAdsId: string;
+  googleAdsConversionLabel: string;
   payment: {
     instantAccess: boolean;
     note: string;
@@ -34,7 +43,7 @@ export interface ISiteSetting {
 const schema = new Schema<ISiteSetting>(
   {
     key: { type: String, default: 'main', unique: true },
-    siteName: { type: String, default: 'NeuroMark-IT' }, // এখানে নাম পরিবর্তন করা হয়েছে
+    siteName: { type: String, default: 'Neuromark.shop' },
     tagline: { type: String, default: 'Premium courses, PDFs, apps and digital products' },
     logoUrl: { type: String, default: '' },
     faviconUrl: { type: String, default: '' },
@@ -45,7 +54,16 @@ const schema = new Schema<ISiteSetting>(
     telegram: { type: String, default: '' },
     footerText: { type: String, default: '' },
     currency: { type: String, default: 'BDT' },
-    gaId: { type: String, default: '' },
+    gaId: { type: String, default: 'G-FJ2FT7KQ72' },
+    gtmId: { type: String, default: 'GTM-P6BZNSRB' },
+    metaPixelId: { type: String, default: '1095038606461734' },
+    tiktokPixelId: { type: String, default: '' },
+    clarityId: { type: String, default: '' },
+    metaAccessToken: { type: String, default: 'EAAPaFZCcU6nABSirYw3gIglEmqwedTy83OsO8tvJ3Kset17HWmwARFgeYmPvVNE2bmBQr1wDunK24ZBv3OnsTmprHlXSYE9sRKl4ASoctNiTzG3ZAycfuwAY2tsWEe2ZB14ZBs3vbkDBEaOMFziXrHHPOgGjf6cEOh9wlBwKeKDfFDrWUHeS11rDRZBfUwRl9VKAZDZD' },
+    tiktokAccessToken: { type: String, default: '' },
+    gaMeasurementSecret: { type: String, default: '' },
+    googleAdsId: { type: String, default: '' },
+    googleAdsConversionLabel: { type: String, default: '' },
     payment: {
       instantAccess: { type: Boolean, default: true },
       note: { type: String, default: '' },

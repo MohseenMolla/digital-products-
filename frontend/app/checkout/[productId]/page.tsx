@@ -1,11 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
 import { CheckoutForm } from '@/components/CheckoutForm';
 import { buttonClass } from '@/components/ui/Button';
 import { ErrorState, PageLoader } from '@/components/ui/States';
 import { useAuth } from '@/hooks/useAuth';
 import { useFetch } from '@/hooks/useFetch';
+import { trackInitiateCheckout } from '@/lib/tracking';
 import type { Product } from '@/types';
 
 /** No login required: guests check out with name, email and phone. */
@@ -14,6 +16,12 @@ export default function CheckoutPage() {
   const { user, loading } = useAuth();
   const { data: product, loading: pl, error } = useFetch<Product>(`/products/by-id/${productId}`);
   const { data: owned } = useFetch<{ owned: boolean }>(user ? `/purchases/check/${productId}` : null);
+
+  useEffect(() => {
+    if (product) {
+      trackInitiateCheckout({ id: product.id, name: product.title, price: product.price });
+    }
+  }, [product]);
 
   if (loading || pl) return <PageLoader />;
   if (error || !product) return <div className="container-x max-w-xl py-12"><ErrorState message={error || 'Product not found'} /></div>;

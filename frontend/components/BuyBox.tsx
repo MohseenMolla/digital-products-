@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/lib/cart';
 import { buttonClass, Button } from '@/components/ui/Button';
+import { trackAddToCart } from '@/lib/tracking';
 import type { Product } from '@/types';
 
 export function BuyBox({ product }: { product: Product }) {
@@ -22,7 +23,7 @@ export function BuyBox({ product }: { product: Product }) {
   return (
     <div className="mt-5 flex flex-col gap-2">
       <Link href={`/checkout/${product.id}`} className={buttonClass('primary', 'lg', 'w-full')}>Buy Now</Link>
-      <Button variant="secondary" size="lg" className="w-full" onClick={() => cart.add({ id: product.id, title: product.title, slug: product.slug, price: product.price, thumbnail: product.thumbnail })} disabled={cart.has(product.id)}>
+      <Button variant="secondary" size="lg" className="w-full" onClick={() => { trackAddToCart({ id: product.id, name: product.title, price: product.price }); cart.add({ id: product.id, title: product.title, slug: product.slug, price: product.price, thumbnail: product.thumbnail }); }} disabled={cart.has(product.id)}>
         <ShoppingCart className="h-4 w-4" />{cart.has(product.id) ? 'In your cart' : 'Add to Cart'}
       </Button>
     </div>

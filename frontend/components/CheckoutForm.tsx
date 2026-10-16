@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Lock } from 'lucide-react';
 import { api, errMsg } from '@/lib/api';
+import { getStoredAttribution } from '@/lib/attribution';
 import { phonePattern } from '@/lib/format';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
@@ -42,7 +43,14 @@ export function CheckoutForm({ product }: { product: Product }) {
   async function onSubmit(d: Form) {
     setError('');
     try {
-      const r = await api.post('/orders/checkout', { productId: product.id, fullName: d.fullName, email: d.email, phone: d.phone, couponCode: coupon?.code });
+      const r = await api.post('/orders/checkout', {
+        productId: product.id,
+        fullName: d.fullName,
+        email: d.email,
+        phone: d.phone,
+        couponCode: coupon?.code,
+        attribution: getStoredAttribution('last'),
+      });
       const out = r.data.data as { free: boolean; orderNumber: string; accessToken: string };
       // Free orders go straight to the download page; paid orders go to the payment page.
       router.push(out.free ? `/order/${out.orderNumber}?token=${out.accessToken}` : `/payment/${out.orderNumber}?token=${out.accessToken}`);

@@ -11,6 +11,7 @@ import {
 import { BuyBox } from '@/components/BuyBox';
 import { PriceDisplay } from '@/components/PriceDisplay';
 import { ProductGrid } from '@/components/ProductGrid';
+import { ProductViewTracker } from '@/components/ProductViewTracker';
 import { sget } from '@/lib/server-api';
 import { TYPE_LABEL } from '@/lib/format';
 import type { Product, Paged } from '@/types';
@@ -94,6 +95,7 @@ export default async function ProductPage({ params }: Props) {
   return (
     // Added bottom padding on mobile so the content isn't hidden behind the fixed buy bar
     <article className="container-x py-5 pb-32 md:py-10 lg:pb-12">
+      <ProductViewTracker product={p} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

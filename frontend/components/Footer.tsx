@@ -29,7 +29,16 @@ export function Footer({ s }: { s: Settings }) {
           </ul>
         </div>
       </div>
-      <div className="border-t border-slate-200 py-4 text-center text-xs text-slate-500">© {new Date().getFullYear()} {s.siteName}. All rights reserved.</div>
+      <div className="border-t border-slate-200 py-4 text-xs text-slate-500">
+        <div className="container-x flex flex-col items-center justify-between gap-2 sm:flex-row">
+          <p>© {new Date().getFullYear()} {s.siteName}. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy-policy" className="hover:text-brand-700 transition-colors">Privacy Policy</Link>
+            <span>·</span>
+            <Link href="/cookie-policy" className="hover:text-brand-700 transition-colors">Cookie Policy</Link>
+          </div>
+        </div>
+      </div>
     </footer>
   );
 }

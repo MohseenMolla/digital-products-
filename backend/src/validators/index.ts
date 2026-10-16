@@ -27,6 +27,7 @@ export const checkoutSchema = z.object({
   email: z.string().trim().toLowerCase().email('Enter a valid email'),
   phone,
   couponCode: z.string().trim().max(40).optional().or(z.literal('')),
+  attribution: z.record(z.unknown()).optional(),
 });
 
 export const submitPaymentSchema = z.object({
@@ -115,6 +116,9 @@ export const settingsSchema = z.object({
   contactEmail: z.string().default(''), phone: z.string().default(''), whatsapp: z.string().default(''),
   facebook: z.string().default(''), telegram: z.string().default(''), footerText: z.string().default(''),
   currency: z.string().default('BDT'), gaId: z.string().default(''),
+  gtmId: z.string().default(''), metaPixelId: z.string().default(''), tiktokPixelId: z.string().default(''), clarityId: z.string().default(''),
+  metaAccessToken: z.string().default(''), tiktokAccessToken: z.string().default(''), gaMeasurementSecret: z.string().default(''),
+  googleAdsId: z.string().default(''), googleAdsConversionLabel: z.string().default(''),
   payment: z.object({
     instantAccess: z.boolean(), note: z.string().default(''),
     methods: z.array(z.object({ key: z.enum(['BKASH', 'NAGAD', 'ROCKET']), label: z.string().min(1), number: z.string().trim().default(''), accountType: z.string().default('Send Money'), enabled: z.boolean() })).max(3),

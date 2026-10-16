@@ -54,8 +54,20 @@ async function run() {
   ];
   for (const it of items) await Product.findOneAndUpdate({ slug: it.slug }, it, { upsert: true, new: true, setDefaultsOnInsert: true });
 
-  if (!(await SiteSetting.findOne({ key: 'main' }))) await SiteSetting.create({ key: 'main' });
-  console.log('Seed complete');
+  await SiteSetting.findOneAndUpdate(
+    { key: 'main' },
+    {
+      $set: {
+        siteName: 'Neuromark.shop',
+        gaId: 'G-FJ2FT7KQ72',
+        gtmId: 'GTM-P6BZNSRB',
+        metaPixelId: '1095038606461734',
+        metaAccessToken: 'EAAPaFZCcU6nABSirYw3gIglEmqwedTy83OsO8tvJ3Kset17HWmwARFgeYmPvVNE2bmBQr1wDunK24ZBv3OnsTmprHlXSYE9sRKl4ASoctNiTzG3ZAycfuwAY2tsWEe2ZB14ZBs3vbkDBEaOMFziXrHHPOgGjf6cEOh9wlBwKeKDfFDrWUHeS11rDRZBfUwRl9VKAZDZD',
+      },
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true },
+  );
+  console.log('Seed complete with Neuromark.shop tracking settings');
   await mongoose.disconnect();
 }
 

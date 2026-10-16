@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { ErrorState, PageLoader } from '@/components/ui/States';
 import { useToast } from '@/components/ui/Toast';
 import { formatDate } from '@/lib/format';
+import { trackPurchase, trackPaymentFailed, trackDownload } from '@/lib/tracking';
 import { CopyRow } from './CopyRow';
 
 interface Resp {
@@ -55,6 +56,36 @@ export function OrderAccess({ orderNumber, token }: { orderNumber: string; token
     const t = setInterval(() => { api.get(url).then((r) => setData(r.data.data as Resp)).catch(() => undefined); }, 15000);
     return () => clearInterval(t);
   }, [waiting, url, setData]);
+
+  useEffect(() => {
+    if (!data) return;
+    try {
+      if (data.access) {
+        const key = `sv_tracked_${data.order.orderNumber}`;
+        if (!sessionStorage.getItem(key)) {
+          trackPurchase({
+            orderNumber: data.order.orderNumber,
+            value: data.order.amount,
+            productId: data.order.productId,
+            productName: data.order.productTitle,
+          });
+          sessionStorage.setItem(key, '1');
+        }
+      } else if (data.order.paymentStatus === 'FAILED') {
+        const key = `sv_failed_${data.order.orderNumber}`;
+        if (!sessionStorage.getItem(key)) {
+          trackPaymentFailed({
+            orderNumber: data.order.orderNumber,
+            value: data.order.amount,
+            reason: data.rejectReason || undefined,
+          });
+          sessionStorage.setItem(key, '1');
+        }
+      }
+    } catch {
+      // Ignore session storage errors
+    }
+  }, [data]);
   
   if (loading) return <PageLoader text="Loading your product..." />;
   if (error || !data) return <ErrorState message={error || 'This access link is not valid.'} onRetry={reload} />;
@@ -111,6 +142,12 @@ export function OrderAccess({ orderNumber, token }: { orderNumber: string; token
               <a
                 href={fileUrl}
                 download
+                onClick={() => {
+                  trackDownload({
+                    productId: data.order.productId,
+                    productName: data.order.productTitle,
+                  });
+                }}
                 className="flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#02a95c] to-[#8bc53f] py-4 text-[22px] font-bold tracking-wide text-white shadow-lg shadow-green-500/20 transition-transform hover:scale-[1.02] active:scale-95"
               >
                 Download
