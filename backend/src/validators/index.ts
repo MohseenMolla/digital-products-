@@ -24,10 +24,10 @@ export const changePasswordSchema = z.object({
 export const checkoutSchema = z.object({
   productId: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid product'),
   fullName: z.string().trim().min(2, 'Full name is required').max(100),
-  email: z.string().trim().toLowerCase().email('Enter a valid email'),
+  email: z.string().trim().toLowerCase().email('Enter a valid email').or(z.literal('')).optional(),
   phone,
   couponCode: z.string().trim().max(40).optional().or(z.literal('')),
-  attribution: z.record(z.unknown()).optional(),
+  attribution: z.record(z.unknown()).nullable().optional(),
 });
 
 export const submitPaymentSchema = z.object({

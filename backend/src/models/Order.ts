@@ -37,7 +37,7 @@ const schema = new Schema<IOrder>(
     orderNumber: { type: String, required: true, unique: true },
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     customerName: { type: String, required: true },
-    customerEmail: { type: String, required: true, lowercase: true },
+    customerEmail: { type: String, default: '', lowercase: true },
     customerPhone: { type: String, required: true },
     product: { type: Schema.Types.ObjectId, ref: 'Product', required: true, index: true },
     productTitleSnapshot: { type: String, required: true },

@@ -12,23 +12,48 @@ import { newAccessToken, sealToken } from './orderAccess.service';
 import { finalizeFreeOrder } from './payment.service';
 import { applyCoupon, round2 } from './pricing.service';
 
-interface CheckoutInput { productId: string; fullName: string; email: string; phone: string; couponCode?: string; attribution?: Record<string, unknown>; }
+interface CheckoutInput { productId: string; fullName: string; email?: string; phone: string; couponCode?: string; attribution?: Record<string, unknown> | null; }
 
 /**
- * Logged-in users buy as themselves. Guests are matched by email to an existing account, or a
+ * Logged-in users buy as themselves. Guests are matched by phone or email to an existing account, or a
  * passwordless guest account is created so the purchase has an owner. The guest can set a password later.
  */
 async function resolveCustomer(authUser: HydratedDocument<IUser> | null, input: CheckoutInput): Promise<HydratedDocument<IUser>> {
   if (authUser) return authUser;
-  const existing = await User.findOne({ email: input.email });
+  const cleanPhone = input.phone.replace(/\D/g, '');
+  const placeholderEmail = `${cleanPhone}@customer.neuromark.shop`;
+  const providedEmail = (input.email || '').trim().toLowerCase();
+
+  const matchConditions: Array<Record<string, unknown>> = [{ phone: input.phone }, { email: placeholderEmail }];
+  if (providedEmail) {
+    matchConditions.push({ email: providedEmail });
+  }
+
+  const existing = await User.findOne({ $or: matchConditions });
   if (existing) {
     if (!existing.isActive) throw new AppError(403, 'This account has been disabled', 'ACCOUNT_DISABLED');
+    if (providedEmail && existing.email.endsWith('@customer.neuromark.shop')) {
+      existing.email = providedEmail;
+      await existing.save().catch(() => {});
+    }
     return existing;
   }
+
+  const emailToUse = providedEmail || placeholderEmail;
   try {
-    return await User.create({ name: input.fullName, email: input.email, phone: input.phone, password: crypto.randomBytes(24).toString('hex'), role: 'USER', isGuest: true });
+    return await User.create({
+      name: input.fullName,
+      email: emailToUse,
+      phone: input.phone,
+      password: crypto.randomBytes(24).toString('hex'),
+      role: 'USER',
+      isGuest: true,
+    });
   } catch (e) {
-    if ((e as { code?: number }).code === 11000) { const u = await User.findOne({ email: input.email }); if (u) return u; }
+    if ((e as { code?: number }).code === 11000) {
+      const u = await User.findOne({ $or: matchConditions });
+      if (u) return u;
+    }
     throw e;
   }
 }
@@ -60,7 +85,7 @@ export async function createCheckout(authUser: HydratedDocument<IUser> | null, i
     try {
       order = await Order.create({
         orderNumber: generateOrderNumber(), user: user._id,
-        customerName: input.fullName, customerEmail: input.email, customerPhone: input.phone,
+        customerName: input.fullName, customerEmail: (input.email || '').trim().toLowerCase(), customerPhone: input.phone,
         product: product._id, productTitleSnapshot: product.title,
         subtotal, discount, couponCode, amount, currency: 'BDT', attribution: input.attribution || {}, accessTokenEnc: sealToken(token),
         timeline: [{ event: 'CREATED', note: authUser ? 'Order created' : 'Guest order created', at: new Date() }],

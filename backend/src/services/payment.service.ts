@@ -51,8 +51,10 @@ async function afterPaid(order: HydratedDocument<IOrder>) {
       notifyUser(order.user, { type: 'PAYMENT_SUCCESS', title: 'Payment confirmed', message: `${title} is confirmed`, link: `/dashboard/products/${order.product}` }),
       notifyAdmins({ type: 'PAYMENT_SUCCESS', title: 'Payment approved', message: `${order.orderNumber} - ৳${order.amount}`, link: `/admin/orders/${order._id}` }),
     ]);
-    await sendPaymentEmail(order.customerEmail, { orderNumber: order.orderNumber, product: title, amount: order.amount, productId: String(order.product) });
-    if (!order.metadata?.accessEmailSent) await sendAccessEmail(order.customerEmail, { product: title, link: await accessLink(order) });
+    if (order.customerEmail && !order.customerEmail.includes('@customer.neuromark.shop')) {
+      await sendPaymentEmail(order.customerEmail, { orderNumber: order.orderNumber, product: title, amount: order.amount, productId: String(order.product) });
+      if (!order.metadata?.accessEmailSent) await sendAccessEmail(order.customerEmail, { product: title, link: await accessLink(order) });
+    }
   } catch (e) { logger.warn({ err: (e as Error).message }, 'post-payment side effects failed'); }
 }
 
@@ -111,7 +113,9 @@ export async function submitManualPayment(order: HydratedDocument<IOrder>, input
   if (cfg.instantAccess) {
     await grantAccess(claimed);
     await Order.updateOne({ _id: claimed._id }, { $set: { 'metadata.accessEmailSent': true, 'metadata.provisionalAccess': true }, $push: { timeline: tl('INSTANT_ACCESS', 'Access granted pending admin verification') } });
-    void accessLink(claimed).then((link) => sendAccessEmail(claimed.customerEmail, { product: claimed.productTitleSnapshot, link }));
+    if (claimed.customerEmail && !claimed.customerEmail.includes('@customer.neuromark.shop')) {
+      void accessLink(claimed).then((link) => sendAccessEmail(claimed.customerEmail, { product: claimed.productTitleSnapshot, link }));
+    }
   }
   return { order: claimed, instant: cfg.instantAccess };
 }

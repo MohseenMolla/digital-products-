@@ -5,7 +5,7 @@ export function sha256(val: string): string {
 }
 
 export function normalizeAndHashEmail(email: string): string {
-  if (!email || !email.trim()) return '';
+  if (!email || !email.trim() || email.includes('@customer.neuromark.shop')) return '';
   return sha256(email);
 }
 

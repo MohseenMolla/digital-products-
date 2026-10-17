@@ -59,7 +59,7 @@ export function pushToDataLayer(event: string, params?: Record<string, unknown>)
 }
 
 export function trackEvent(eventName: string, params: TrackEventParams = {}): string {
-  const eventId = generateEventId()
+  const eventId = (typeof params.event_id === 'string' && params.event_id) ? params.event_id : generateEventId()
 
   // Push to dataLayer (always)
   pushToDataLayer(eventName, { ...params, event_id: eventId })
@@ -165,6 +165,7 @@ export function trackPurchase(params: {
   productName: string
 }): string {
   return trackEvent('purchase', {
+    event_id: params.orderNumber,
     order_id: params.orderNumber,
     value: params.value,
     currency: params.currency || 'BDT',

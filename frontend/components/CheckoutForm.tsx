@@ -16,7 +16,7 @@ import type { Product } from '@/types';
 
 const schema = z.object({
   fullName: z.string().min(2, 'Full name is required'),
-  email: z.string().email('Enter a valid email'),
+  email: z.string().trim().email('Enter a valid email').or(z.literal('')).optional(),
   phone: z.string().regex(phonePattern, 'Use a valid Bangladeshi number, e.g. 01XXXXXXXXX'),
   couponCode: z.string().optional(),
 });
@@ -45,11 +45,11 @@ export function CheckoutForm({ product }: { product: Product }) {
     try {
       const r = await api.post('/orders/checkout', {
         productId: product.id,
-        fullName: d.fullName,
-        email: d.email,
-        phone: d.phone,
+        fullName: d.fullName.trim(),
+        email: d.email?.trim() || undefined,
+        phone: d.phone.trim(),
         couponCode: coupon?.code,
-        attribution: getStoredAttribution('last'),
+        attribution: getStoredAttribution('last') || undefined,
       });
       const out = r.data.data as { free: boolean; orderNumber: string; accessToken: string };
       // Free orders go straight to the download page; paid orders go to the payment page.
@@ -62,7 +62,7 @@ export function CheckoutForm({ product }: { product: Product }) {
       <form onSubmit={handleSubmit(onSubmit)} className="order-2 space-y-4 rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 lg:order-1" noValidate>
         <h2 className="text-lg font-semibold">Your information</h2>
         <Input label="Full name" autoComplete="name" error={errors.fullName?.message} {...register('fullName')} />
-        <Input label="Email" type="email" autoComplete="email" error={errors.email?.message} {...register('email')} />
+        <Input label="Email (optional / ঐচ্ছিক)" type="email" autoComplete="email" placeholder="example@mail.com (ঐচ্ছিক)" error={errors.email?.message} {...register('email')} />
         <Input label="Phone number" type="tel" inputMode="numeric" placeholder="01XXXXXXXXX" autoComplete="tel" error={errors.phone?.message} {...register('phone')} />
         <div>
           <div className="flex items-end gap-2">
