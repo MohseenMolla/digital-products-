@@ -82,7 +82,7 @@ export function buildAccessPayload(p: HydratedDocument<IProduct>, purchase: Hydr
   return {
     id: String(p._id), title: p.title, productType: p.productType, accessType: p.accessType,
     content: p.content, externalUrl: p.externalUrl, appInstructions: p.appInstructions,
-    hasFile: Boolean(p.pdfPublicId), fileName: p.fileName,
+    hasFile: Boolean(p.pdfPublicId || p.pdfUrl), fileName: p.fileName || 'document.pdf',
     downloadsRemaining: p.downloadLimit > 0 ? Math.max(0, p.downloadLimit - purchase.downloadCount) : null,
     downloadCount: purchase.downloadCount, expiresAt: purchase.expiresAt,
     credentials: p.productType === 'PREMIUM_APP' || creds?.loginEmail
