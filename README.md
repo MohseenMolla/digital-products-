@@ -57,3 +57,8 @@ Frontend: `NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_API_URL, BACKEND_URL`.
 * The app cannot see your wallet, so approval is a manual check of TrxID/amount against your own statement.
 * Account recovery: `/forgot-password` (emailed one-hour reset link) and `/recover` (re-sends a guest's private purchase links to the email on the order). Both need `EMAIL_*` configured and answer identically whether or not the email exists.
 * Course modules/lessons are embedded in the Product document. "Cart" is a saved list; each item checks out separately.
+* ## Development
+
+This project is continuously improving
+with new features and bug fixes.
+
